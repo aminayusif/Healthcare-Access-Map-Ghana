@@ -1,0 +1,93 @@
+# .gitignore - Django backend + React frontend
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---------- Python ----------
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Virtual environment / env files
+.venv/
+venv/
+env/
+ENV/
+.Python
+
+# Data files
+data/raw
+ *.csv
+
+# Environment config and secret files
+.env
+.env.*
+local_settings.py
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Testing / coverage / caches
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.pytest_cache/
+.mypy_cache/
+
+# ---------- Node / Frontend (Create React App) ----------
+node_modules/
+frontend/node_modules/
+build/
+frontend/build/
+
+# CRA environment overrides
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# npm/yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- IDEs / Editors ----------
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.iml
+
+# ---------- Jupyter / Notebooks ----------
+.ipynb_checkpoints
+
+# ---------- Misc / Binaries / Logs ----------
+*.log
+*.sqlite3
+*.so
+*.dylib
+*.dll
+
+# Ignore VS Code workspace settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+
+cache/
+# End
