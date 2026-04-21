@@ -18,7 +18,7 @@ def get_access_info(lat, lon):
     point = np.array([[lat, lon]])
     point_rad = np.radians(point)
 
-    dist, _ = tree.query(point_rad, k=1)
+    dist, ind = tree.query(point_rad, k=1)
     distance_km = dist[0][0] * 6371
 
     if distance_km <= 5:
@@ -28,7 +28,12 @@ def get_access_info(lat, lon):
     else:
         level = "poor"
 
+    nearest_index = ind[0][0]
+    nearest_facility = facilities.iloc[nearest_index]
+
     return {
         "distance_km": round(distance_km, 2),
-        "access_level": level
+        "access_level": level,
+        "nearest_facility": nearest_facility.get("name", "Unknown"),
+        "facility_type": nearest_facility.get("amenity", "Unknown")
     }
