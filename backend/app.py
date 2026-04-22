@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from .model_utils import get_access_info
 from fastapi.middleware.cors import CORSMiddleware
 from .model_utils import get_summary_stats
+from .model_utils import get_recommendations
 
 app = FastAPI()
 
@@ -26,3 +27,7 @@ def access(lat: float, lon: float):
 @app.get("/summary")
 def summary():
     return get_summary_stats()
+
+@app.get("/recommendations")
+def recommendations(top_n: int = 20):
+    return get_recommendations(top_n)

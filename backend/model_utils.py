@@ -1,6 +1,7 @@
 import geopandas as gpd
 import numpy as np
 from sklearn.neighbors import BallTree
+import pandas as pd
 
 # -----------------------------
 # LOAD DATA (runs once at startup)
@@ -84,6 +85,40 @@ def get_summary_stats() -> dict:
         return {
             "total_facilities": total_facilities,
             "facility_types": facility_counts
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+
+
+def get_recommendations(top_n: int = 20):
+    """
+    Returns top underserved locations for new facility placement.
+    """
+
+    try:
+        grid_df = pd.read_csv("backend/data/upper_east_distance_grid.csv")
+
+        # Sort by worst access (highest distance)
+        worst_areas = grid_df.sort_values(
+            by="distance_km", ascending=False
+        ).head(top_n)
+
+        recommendations = []
+
+        for _, row in worst_areas.iterrows():
+            recommendations.append({
+                "lat": row["lat"],
+                "lon": row["lon"],
+                "distance_km": round(row["distance_km"], 2),
+                "priority": "high"
+            })
+
+        return {
+            "total_recommendations": len(recommendations),
+            "locations": recommendations
         }
 
     except Exception as e:

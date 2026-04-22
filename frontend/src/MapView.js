@@ -1,4 +1,11 @@
-import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  useMapEvents,
+  Marker,
+  Popup,
+  CircleMarker
+} from "react-leaflet";
 import { useState } from "react";
 import axios from "axios";
 
@@ -30,14 +37,46 @@ export default function MapView() {
   const [position, setPosition] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [recommendations, setRecommendations] = useState([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+
   const getAccessColor = (level) => {
     if (level === "good") return "green";
     if (level === "moderate") return "orange";
     return "red";
   };
 
+  const fetchRecommendations = () => {
+    axios
+      .get("http://127.0.0.1:8000/recommendations")
+      .then((res) => {
+        setRecommendations(res.data.locations || []);
+        setShowRecommendations(true);
+      })
+      .catch(() => {
+        alert("Failed to load recommendations");
+      });
+  };
+
   return (
     <div>
+      {/* Buttons */}
+      <div style={{ marginBottom: "10px", textAlign: "center" }}>
+        <button onClick={fetchRecommendations}>
+          Show Recommended Locations
+        </button>
+
+        {showRecommendations && (
+          <button
+            onClick={() => setShowRecommendations(false)}
+            style={{ marginLeft: "10px" }}
+          >
+            Hide
+          </button>
+        )}
+      </div>
+
+      {/* Map */}
       <MapContainer
         center={[10.8, -0.85]}
         zoom={8}
@@ -54,6 +93,7 @@ export default function MapView() {
           setLoading={setLoading}
         />
 
+        {/* User Click Marker */}
         {position && (
           <Marker position={position}>
             <Popup>
@@ -92,6 +132,26 @@ export default function MapView() {
             </Popup>
           </Marker>
         )}
+
+        {/* Recommendation Points (CircleMarkers) */}
+        {showRecommendations &&
+          recommendations.map((rec, index) => (
+            <CircleMarker
+              key={index}
+              center={[rec.lat, rec.lon]}
+              radius={6}
+              pathOptions={{
+                color: "blue",
+                fillColor: "blue",
+                fillOpacity: 0.7,
+              }}
+            >
+              <Popup>
+                <b>Recommended Site</b>
+                <p>Distance gap: {rec.distance_km} km</p>
+              </Popup>
+            </CircleMarker>
+          ))}
       </MapContainer>
 
       {/* Legend */}
@@ -100,6 +160,7 @@ export default function MapView() {
         <div style={{ color: "green" }}>● Good (≤5 km)</div>
         <div style={{ color: "orange" }}>● Moderate (5–10 km)</div>
         <div style={{ color: "red" }}>● Poor (&gt;10 km)</div>
+        <div style={{ color: "blue" }}>● Recommended Locations</div>
       </div>
     </div>
   );
