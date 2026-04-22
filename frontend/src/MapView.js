@@ -2,19 +2,26 @@ import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from "react-leaf
 import { useState } from "react";
 import axios from "axios";
 
-function ClickHandler({ setResult, setPosition }) {
+function ClickHandler({ setResult, setPosition, setLoading }) {
   useMapEvents({
     click(e) {
       const { lat, lng } = e.latlng;
-      setPosition([lat, lng]);
 
-      axios.get(`http://127.0.0.1:8000/access?lat=${lat}&lon=${lng}`)
-        .then(res => {
+      setPosition([lat, lng]);
+      setLoading(true);
+
+      axios
+        .get(`http://127.0.0.1:8000/access?lat=${lat}&lon=${lng}`)
+        .then((res) => {
           setResult(res.data);
-        });
-        
-    }
+        })
+        .catch(() => {
+          setResult({ error: "Failed to fetch data" });
+        })
+        .finally(() => setLoading(false));
+    },
   });
+
   return null;
 }
 
@@ -23,38 +30,77 @@ export default function MapView() {
   const [position, setPosition] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const getAccessColor = (level) => {
+    if (level === "good") return "green";
+    if (level === "moderate") return "orange";
+    return "red";
+  };
+
   return (
     <div>
-      <MapContainer center={[10.8, -0.85]} zoom={8} style={{ height: "500px" }}>
+      <MapContainer
+        center={[10.8, -0.85]}
+        zoom={8}
+        style={{ height: "500px", width: "100%" }}
+      >
         <TileLayer
-          attribution='© OpenStreetMap contributors'
+          attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <ClickHandler setResult={setResult} setPosition={setPosition} />
+        <ClickHandler
+          setResult={setResult}
+          setPosition={setPosition}
+          setLoading={setLoading}
+        />
 
         {position && (
           <Marker position={position}>
             <Popup>
-              {result ? (
+              {loading ? (
+                <p>Loading...</p>
+              ) : result?.error ? (
+                <p style={{ color: "red" }}>{result.error}</p>
+              ) : result ? (
                 <>
-                  <p><b>Distance:</b> {result.distance_km} km</p>
                   <p>
-  <b>Access:</b>{" "}
-  <span style={{
-    color:
-      result.access_level === "good" ? "green" :
-      result.access_level === "moderate" ? "orange" : "red"
-  }}>
-    {result.access_level}
-  </span>
-</p>
+                    <b>Distance:</b> {result.distance_km} km
+                  </p>
+
+                  <p>
+                    <b>Access:</b>{" "}
+                    <span
+                      style={{
+                        color: getAccessColor(result.access_level),
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {result.access_level}
+                    </span>
+                  </p>
+
+                  <p>
+                    <b>Nearest Facility:</b>{" "}
+                    {result.nearest_facility || "Unknown"}
+                  </p>
+
+                  <p>
+                    <b>Type:</b> {result.facility_type || "Unknown"}
+                  </p>
                 </>
-              ) : "Loading..."}
+              ) : null}
             </Popup>
           </Marker>
         )}
       </MapContainer>
+
+      {/* Legend */}
+      <div style={{ padding: "10px" }}>
+        <b>Legend:</b>
+        <div style={{ color: "green" }}>● Good (≤5 km)</div>
+        <div style={{ color: "orange" }}>● Moderate (5–10 km)</div>
+        <div style={{ color: "red" }}>● Poor (&gt;10 km)</div>
+      </div>
     </div>
   );
 }
